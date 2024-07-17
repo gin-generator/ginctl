@@ -1,0 +1,15 @@
+type {{.Opt}} struct {
+    // TODO: add your params.
+}
+
+func (r *{{.Opt}}) ParseAndCheckParams(c *gin.Context) (err error) {
+	err = http.Parse(c, r)
+	if err != nil {
+		return
+	}
+	if err = validator.ValidateStructWithOutCtx(r); err != nil {
+		return
+	}
+	// TODO: add your logic check.
+	return
+}

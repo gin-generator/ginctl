@@ -1,0 +1,12 @@
+// {{.Description}}
+func (l *Logic) {{.Opt}}(c *gin.Context) {
+	params, err := logic.ParseAndCheckParams[{{.Opt}}](c)
+	if err != nil {
+		http.Alert400(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	// TODO: Your logic.
+
+	// TODO: Replace your return struct.
+	http.SuccessWithData(c, params.Data())
+}

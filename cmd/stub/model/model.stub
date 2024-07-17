@@ -1,0 +1,13 @@
+package model
+
+{{.Import}}
+
+{{.Struct}}
+
+func ({{.Index}} *{{.CamelCase}}) TableName() string {
+	return "{{.TableName}}"
+}
+
+func New{{.CamelCase}}() *{{.CamelCase}} {
+	return &{{.CamelCase}}{}
+}

@@ -1,0 +1,13 @@
+package {{.LowerModel}}
+
+import (
+	"{{.Mod}}/app/http/{{.Apply}}/logic"
+	http "{{.Mod}}/package/respond"
+	"github.com/gin-gonic/gin"
+)
+
+type Logic struct{}
+
+func NewLogic() *Logic {
+	return &Logic{}
+}

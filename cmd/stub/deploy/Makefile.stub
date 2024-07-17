@@ -1,0 +1,9 @@
+export tag=prod-{{.Date}}-1
+export GOPROXY=https://goproxy.cn,direct
+build:
+	echo "building {{.App}} binary"
+	go build -o {{.App}} .
+
+build_image:
+	echo "building {{.App}} container"
+	docker build -t {{.Image}}:${tag} .

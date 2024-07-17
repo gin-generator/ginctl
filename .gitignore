@@ -1,0 +1,4 @@
+# ide and vscode
+.idea
+.vscode
+/**/.DS_Store

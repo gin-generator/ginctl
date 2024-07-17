@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.App}}
+  labels:
+    app: {{.App}}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{.App}}
+  template:
+    metadata:
+      labels:
+        app: {{.App}}
+    spec:
+      containers:
+        - name: {{.App}}
+          image: your-image:{{.Version}}
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.App}}-svc
+  labels:
+    app: {{.App}}-svc
+spec:
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    app: {{.App}}
