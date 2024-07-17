@@ -3,7 +3,7 @@ module github.com/gin-generator/ginctl
 go 1.21.10
 
 require (
-	github.com/gin-generator/ginctl v1.0.6
+	github.com/gin-generator/ginctl v1.0.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/go-redis/redis/v8 v8.11.5
