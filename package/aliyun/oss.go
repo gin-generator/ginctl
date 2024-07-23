@@ -7,6 +7,7 @@ import (
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	cred "github.com/aliyun/credentials-go/credentials"
 	"github.com/gin-generator/ginctl/package/get"
+	"sync"
 )
 
 var (
@@ -16,6 +17,7 @@ var (
 	region string
 	token  string
 	way    string
+	once   sync.Once
 )
 
 type Provider struct{}
@@ -41,7 +43,9 @@ func NewOssClient() (client *oss.Client) {
 	SetToken()
 
 	config := GetCredential()
-	client = oss.NewClient(config)
+	once.Do(func() {
+		client = oss.NewClient(config)
+	})
 	return
 }
 
