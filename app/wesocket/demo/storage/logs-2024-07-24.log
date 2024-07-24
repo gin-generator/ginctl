@@ -1,0 +1,1 @@
+{"level":"ERROR","time":"2024-07-24 15:15:52","caller":"websocket/client.go:63","message":"Read","Distribute":"Message distribution error: current event not supported, fd: 051bdd11-dff6-4d9a-a272-4db90c2b8a54","stacktrace":"github.com/gin-generator/ginctl/package/websocket.(*Client).Read\n\t/Users/qinchaozheng/.g/ginctl/package/websocket/client.go:63"}
