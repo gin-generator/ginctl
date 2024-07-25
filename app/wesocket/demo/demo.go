@@ -29,7 +29,6 @@ func main() {
 	// Start the websocket scheduler
 	manager = ws.NewClientManager()
 	go manager.Scheduler()
-	go manager.Heartbeat()
 
 	// Start the websocket serve
 	http.HandleFunc("/ws", upgrade)
@@ -67,9 +66,14 @@ func upgrade(w http.ResponseWriter, req *http.Request) {
 	client.Timeout = get.Int64("app.heartbeat_timeout", 600)
 	client.Send <- []byte(fmt.Sprintf("{\"code\": 200,\"message\": \"success\",\"data\": {\"fd\": \"%s\"}}", client.Fd))
 
+	// 监听读
 	go client.Read()
+	// 监听写
 	go client.Write()
+	// 监听订阅
 	go client.Receive()
+	// 心跳检测
+	go client.Heartbeat()
 
 	manager.Register <- client
 }
