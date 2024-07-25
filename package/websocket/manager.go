@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gin-generator/ginctl/package/logger"
+	"github.com/go-redis/redis/v8"
 	"sync"
 	"time"
 )
 
 const (
 	Max = 1000
+)
+
+var (
+	CloseClient chan *Client
 )
 
 // ClientManager Client pool manager
@@ -26,6 +31,7 @@ type ClientManager struct {
 
 func NewClientManager() *ClientManager {
 	limit := get.Uint("app.max_pool", Max)
+	CloseClient = make(chan *Client, limit)
 	return &ClientManager{
 		Register:  make(chan *Client, limit),
 		Unset:     make(chan *Client, limit),
@@ -43,14 +49,16 @@ func (m *ClientManager) Scheduler() {
 		case client := <-m.Register:
 			m.RegisterClient(client)
 		case client := <-m.Unset:
-			m.UnsetClient(client)
+			m.Close(client)
+		case client := <-CloseClient:
+			m.Close(client)
 		case message := <-m.Broadcast:
 			clients := m.GetAllClient()
 			for _, client := range clients {
 				client.Send <- message
 			}
 		case err := <-m.Errs:
-			logger.ErrorString("ClientManager", "Start", err.Error())
+			logger.ErrorString("ClientManager", "Scheduler", err.Error())
 		}
 	}
 }
@@ -87,29 +95,46 @@ func (m *ClientManager) RegisterClient(client *Client) {
 	m.Total += 1
 }
 
-// UnsetClient Unset client
-func (m *ClientManager) UnsetClient(client *Client) {
+// Close Unset client
+func (m *ClientManager) Close(client *Client) {
+
 	err := client.Socket.Close()
 	if err != nil {
 		m.Errs <- err
 	}
+
 	close(client.Send)
-	//pubSubs := client.GetAllChan()
-	//for _, sub := range pubSubs {
-	//	err =
-	//}
+
+	channels, _ := client.GetAllChan()
+	for _, channel := range channels {
+		err = client.Unsubscribe(channel)
+		if err != nil {
+			m.Errs <- err
+		}
+	}
+
+	client.OwnerChannel.Range(func(key, value any) bool {
+		pubSub, ok := value.(*redis.PubSub)
+		if ok {
+			m.Errs <- pubSub.Close()
+		}
+		return true
+	})
+
 	m.Pool.Delete(client.Fd)
 	m.Total -= 1
+	logger.InfoString("ClientManager", "UnsetClient",
+		fmt.Sprintf("websocket timeout, fd: %s be cleared", client.Fd))
 }
 
 // Heartbeat The scheduled task clears timeout links
 func (m *ClientManager) Heartbeat() {
-	EventListener(time.Microsecond*500, func() {
+	gap := get.Int64("app.heartbeat_check_time", 1000)
+	EventListener(time.Microsecond*time.Duration(gap), func() {
 		clients := m.GetAllClient()
 		for _, client := range clients {
 			if client.IsHeartbeatTimeout(time.Now().Unix()) {
 				m.Unset <- client
-				fmt.Println(fmt.Sprintf("超时链接 fd: %s 被清理", client.Fd))
 			}
 		}
 	})

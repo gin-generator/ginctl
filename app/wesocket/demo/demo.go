@@ -69,6 +69,7 @@ func upgrade(w http.ResponseWriter, req *http.Request) {
 
 	go client.Read()
 	go client.Write()
+	go client.Receive()
 
 	manager.Register <- client
 }

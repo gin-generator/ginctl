@@ -23,6 +23,7 @@ type Client struct {
 	HeartbeatTime int64           // 用户上次心跳时间
 	Timeout       int64           // 断连时间
 	Channel       sync.Map        // 订阅频道
+	OwnerChannel  sync.Map        // 自己创建的频道
 }
 
 func NewClient(addr string, socket *websocket.Conn) *Client {
@@ -39,12 +40,7 @@ func NewClient(addr string, socket *websocket.Conn) *Client {
 }
 
 func (c *Client) Close() {
-	err := c.Socket.Close()
-	if err != nil {
-		logger.ErrorString("Websocket", "Close", err.Error())
-		return
-	}
-	close(c.Send)
+	CloseClient <- c
 }
 
 // Read client data
@@ -104,6 +100,7 @@ func (c *Client) CreatChan() (channel string, err error) {
 		return
 	}
 	c.Channel.LoadOrStore(channel, pubSub)
+	c.OwnerChannel.LoadOrStore(channel, pubSub)
 	return
 }
 
@@ -122,10 +119,11 @@ func (c *Client) GetChan(channel string) (pubSub *redis.PubSub, err error) {
 }
 
 // GetAllChan Get all channels
-func (c *Client) GetAllChan() (pubSubs []*redis.PubSub) {
+func (c *Client) GetAllChan() (channels []string, pubSubs []*redis.PubSub) {
 	c.Channel.Range(func(key, value any) bool {
 		pubSub, ok := value.(*redis.PubSub)
 		if ok {
+			channels = append(channels, key.(string))
 			pubSubs = append(pubSubs, pubSub)
 		}
 		return true
@@ -154,9 +152,13 @@ func (c *Client) Subscribe(channel string) (err error) {
 // Receive subscription messages
 func (c *Client) Receive() {
 	var pubSubs []*redis.PubSub
-	EventListener(time.Millisecond*1000, func() {
-		pubSubs = c.GetAllChan()
-	})
+	for {
+		_, pubSubs = c.GetAllChan()
+		if len(pubSubs) > 0 {
+			break
+		}
+		time.Sleep(time.Millisecond * 1000)
+	}
 	for _, sub := range pubSubs {
 		go func(sub *redis.PubSub) {
 			ch := sub.Channel()
@@ -177,6 +179,19 @@ func (c *Client) Unsubscribe(channel string) (err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+func (c *Client) CloseSubscribe(channel string) (err error) {
+	value, ok := c.OwnerChannel.Load(channel)
+	if !ok {
+		return errors.New("not found channel")
+	}
+	pubSub, ok := value.(*redis.PubSub)
+	if !ok {
+		return errors.New("channel type error")
+	}
+	err = pubSub.Close()
 	return
 }
 

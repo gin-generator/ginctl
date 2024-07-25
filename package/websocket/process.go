@@ -19,7 +19,7 @@ type Response struct {
 
 type Message struct {
 	Event   string `json:"event"`
-	Request string `json:"request,omitempty"`
+	Request any    `json:"request,omitempty"`
 }
 
 type DisposeFunc func(request *Request) (response *Response)
@@ -59,9 +59,14 @@ func Distribute(client *Client, message []byte) (err error) {
 		return
 	}
 
+	req, err := json.Marshal(r.Request)
+	if err != nil {
+		return
+	}
+
 	response := handler(&Request{
 		Client: client,
-		Send:   []byte(r.Request),
+		Send:   req,
 	})
 
 	bytes, err := json.Marshal(response)
