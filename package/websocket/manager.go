@@ -7,7 +7,6 @@ import (
 	"github.com/gin-generator/ginctl/package/logger"
 	"github.com/go-redis/redis/v8"
 	"sync"
-	"time"
 )
 
 const (
@@ -125,17 +124,4 @@ func (m *ClientManager) Close(client *Client) {
 	m.Total -= 1
 	logger.InfoString("ClientManager", "UnsetClient",
 		fmt.Sprintf("websocket timeout, fd: %s be cleared", client.Fd))
-}
-
-// Heartbeat The scheduled task clears timeout links
-func (m *ClientManager) Heartbeat() {
-	gap := get.Int64("app.heartbeat_check_time", 1000)
-	EventListener(time.Microsecond*time.Duration(gap), func() {
-		clients := m.GetAllClient()
-		for _, client := range clients {
-			if client.IsHeartbeatTimeout(time.Now().Unix()) {
-				m.Unset <- client
-			}
-		}
-	})
 }

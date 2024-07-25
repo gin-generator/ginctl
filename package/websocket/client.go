@@ -205,3 +205,13 @@ func (c *Client) IsHeartbeatTimeout(currentTime int64) (timeout bool) {
 	}
 	return
 }
+
+// Heartbeat The scheduled task clears timeout links
+func (c *Client) Heartbeat() {
+	gap := get.Int64("app.heartbeat_check_time", 1000)
+	EventListener(time.Microsecond*time.Duration(gap), func() {
+		if c.IsHeartbeatTimeout(time.Now().Unix()) {
+			CloseClient <- c
+		}
+	})
+}
