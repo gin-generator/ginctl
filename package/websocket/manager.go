@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gin-generator/ginctl/package/logger"
 	"sync"
@@ -93,16 +94,23 @@ func (m *ClientManager) UnsetClient(client *Client) {
 		m.Errs <- err
 	}
 	close(client.Send)
+	//pubSubs := client.GetAllChan()
+	//for _, sub := range pubSubs {
+	//	err =
+	//}
 	m.Pool.Delete(client.Fd)
 	m.Total -= 1
 }
 
+// Heartbeat The scheduled task clears timeout links
 func (m *ClientManager) Heartbeat() {
-	// todo 定时检测
-	clients := m.GetAllClient()
-	for _, client := range clients {
-		if client.IsHeartbeatTimeout(time.Now().Unix()) {
-			m.Unset <- client
+	EventListener(time.Microsecond*500, func() {
+		clients := m.GetAllClient()
+		for _, client := range clients {
+			if client.IsHeartbeatTimeout(time.Now().Unix()) {
+				m.Unset <- client
+				fmt.Println(fmt.Sprintf("超时链接 fd: %s 被清理", client.Fd))
+			}
 		}
-	}
+	})
 }

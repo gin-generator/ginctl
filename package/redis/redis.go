@@ -277,3 +277,20 @@ func (rds *RdsClient) SRandMember(key string) string {
 	}
 	return result
 }
+
+// Publish 发布消息
+func (rds *RdsClient) Publish(channel string, message string) (err error) {
+	err = rds.Client.Publish(rds.Context, channel, message).Err()
+	if err != nil {
+		if err != redis.Nil {
+			logger.ErrorString("Redis", "Publish", err.Error())
+		}
+	}
+	return
+}
+
+// Subscribe 订阅频道
+func (rds *RdsClient) Subscribe(channel string) (pubSub *redis.PubSub) {
+	pubSub = rds.Client.Subscribe(rds.Context, channel)
+	return pubSub
+}
