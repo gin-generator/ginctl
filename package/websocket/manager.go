@@ -14,7 +14,7 @@ const (
 )
 
 var (
-	CloseClient chan *Client
+	Manager *ClientManager
 )
 
 // ClientManager Client pool manager
@@ -30,8 +30,7 @@ type ClientManager struct {
 
 func NewClientManager() *ClientManager {
 	limit := get.Uint("app.max_pool", Max)
-	CloseClient = make(chan *Client, limit)
-	return &ClientManager{
+	Manager = &ClientManager{
 		Register:  make(chan *Client, limit),
 		Unset:     make(chan *Client, limit),
 		Total:     0,
@@ -39,6 +38,7 @@ func NewClientManager() *ClientManager {
 		Broadcast: make(chan []byte, limit),
 		Errs:      make(chan error, limit),
 	}
+	return Manager
 }
 
 // Scheduler Start the websocket scheduler
@@ -48,8 +48,6 @@ func (m *ClientManager) Scheduler() {
 		case client := <-m.Register:
 			m.RegisterClient(client)
 		case client := <-m.Unset:
-			m.Close(client)
-		case client := <-CloseClient:
 			m.Close(client)
 		case message := <-m.Broadcast:
 			clients := m.GetAllClient()

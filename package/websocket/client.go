@@ -15,15 +15,16 @@ import (
 )
 
 type Client struct {
-	Fd            string          // 每个连接唯一标识
-	Addr          string          // 客户端ip地址
-	Socket        *websocket.Conn // 用户连接
-	Send          chan []byte     // 待发送的数据
-	FirstTime     int64           // 首次连接事件
-	HeartbeatTime int64           // 用户上次心跳时间
-	Timeout       int64           // 断连时间
-	Channel       sync.Map        // 订阅频道
-	OwnerChannel  sync.Map        // 自己创建的频道
+	Fd            string             // 每个连接唯一标识
+	Addr          string             // 客户端ip地址
+	Socket        *websocket.Conn    // 用户连接
+	Send          chan []byte        // 待发送的数据
+	Channel       sync.Map           // 订阅频道
+	OwnerChannel  sync.Map           // 自己创建的频道
+	receive       chan *redis.PubSub // 订阅通知
+	FirstTime     int64              // 首次连接事件
+	HeartbeatTime int64              // 用户上次心跳时间
+	Timeout       int64              // 断连时间
 }
 
 func NewClient(addr string, socket *websocket.Conn) *Client {
@@ -36,11 +37,12 @@ func NewClient(addr string, socket *websocket.Conn) *Client {
 		Send:          make(chan []byte, limit),
 		FirstTime:     First,
 		HeartbeatTime: First,
+		receive:       make(chan *redis.PubSub, 10),
 	}
 }
 
 func (c *Client) Close() {
-	CloseClient <- c
+	Manager.Unset <- c
 }
 
 // Read client data
@@ -101,6 +103,7 @@ func (c *Client) CreatChan() (channel string, err error) {
 	}
 	c.Channel.LoadOrStore(channel, pubSub)
 	c.OwnerChannel.LoadOrStore(channel, pubSub)
+	c.receive <- pubSub
 	return
 }
 
@@ -146,27 +149,28 @@ func (c *Client) Subscribe(channel string) (err error) {
 		return err
 	}
 	c.Channel.LoadOrStore(channel, pubSub)
+	c.receive <- pubSub
 	return
 }
 
 // Receive subscription messages
 func (c *Client) Receive() {
-	var pubSubs []*redis.PubSub
-	for {
-		_, pubSubs = c.GetAllChan()
-		if len(pubSubs) > 0 {
-			break
-		}
-		time.Sleep(time.Millisecond * 1000)
-	}
-	for _, sub := range pubSubs {
-		go func(sub *redis.PubSub) {
-			ch := sub.Channel()
-			for message := range ch {
-				c.Send <- []byte(message.Payload)
+
+	EventListener(time.Millisecond*500, func() {
+		for {
+			select {
+			case pubSub := <-c.receive:
+				go func(sub *redis.PubSub) {
+					ch := sub.Channel()
+					for message := range ch {
+						c.Send <- []byte(message.Payload)
+					}
+				}(pubSub)
+			default:
+				return
 			}
-		}(sub)
-	}
+		}
+	})
 }
 
 // Unsubscribe unsubscribe
@@ -211,7 +215,7 @@ func (c *Client) Heartbeat() {
 	gap := get.Int64("app.heartbeat_check_time", 1000)
 	EventListener(time.Microsecond*time.Duration(gap), func() {
 		if c.IsHeartbeatTimeout(time.Now().Unix()) {
-			CloseClient <- c
+			c.Close()
 		}
 	})
 }
