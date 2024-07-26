@@ -72,7 +72,10 @@ func Distribute(client *Client, message []byte) (err error) {
 		Send:   req,
 	})
 
-	return Do(response, client)
+	if response != nil {
+		return Do(response, client)
+	}
+	return
 }
 
 func Do(response *Response, client *Client) (err error) {
