@@ -12,4 +12,5 @@ func RegisterDemoRoute() {
 	websocket.Register("create_channel", logic.CreateChannel)
 	websocket.Register("subscribe", logic.Subscribe)
 	websocket.Register("broadcast", logic.Broadcast)
+	websocket.Register("staff_broadcast", logic.StaffBroadcast)
 }
