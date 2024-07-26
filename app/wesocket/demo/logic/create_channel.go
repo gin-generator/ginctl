@@ -8,6 +8,7 @@ func CreateChannel(request *websocket.Request) (response *websocket.Response) {
 	if err != nil {
 		response.Code = 500
 		response.Message = err.Error()
+		return
 	}
 	response.Code = 200
 	response.Message = "success"

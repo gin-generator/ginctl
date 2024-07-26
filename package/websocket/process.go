@@ -56,7 +56,10 @@ func Distribute(client *Client, message []byte) (err error) {
 
 	handler, err := GetHandler(r.Event)
 	if err != nil {
-		return
+		return Do(&Response{
+			Code:    500,
+			Message: err.Error(),
+		}, client)
 	}
 
 	req, err := json.Marshal(r.Request)
@@ -69,6 +72,10 @@ func Distribute(client *Client, message []byte) (err error) {
 		Send:   req,
 	})
 
+	return Do(response, client)
+}
+
+func Do(response *Response, client *Client) (err error) {
 	bytes, err := json.Marshal(response)
 	if err != nil {
 		return
