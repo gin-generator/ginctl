@@ -158,12 +158,14 @@ func (c *Client) Receive() {
 	for {
 		select {
 		case pubSub := <-c.receive:
-			go func(sub *redis.PubSub) {
-				ch := sub.Channel()
-				for message := range ch {
-					c.Send <- []byte(message.Payload)
-				}
-			}(pubSub)
+			if pubSub != nil {
+				go func(sub *redis.PubSub) {
+					ch := sub.Channel()
+					for message := range ch {
+						c.Send <- []byte(message.Payload)
+					}
+				}(pubSub)
+			}
 		}
 	}
 }
