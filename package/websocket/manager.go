@@ -50,10 +50,13 @@ func (m *ClientManager) Scheduler() {
 		case client := <-m.Unset:
 			m.Close(client)
 		case message := <-m.Broadcast:
-			clients := m.GetAllClient()
-			for _, client := range clients {
-				client.Send <- message
-			}
+			m.Pool.Range(func(key, value any) bool {
+				client, ok := value.(*Client)
+				if ok {
+					client.Send <- message
+				}
+				return true
+			})
 		case err := <-m.Errs:
 			logger.ErrorString("ClientManager", "Scheduler", err.Error())
 		}
