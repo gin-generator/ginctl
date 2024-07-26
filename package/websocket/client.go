@@ -155,22 +155,17 @@ func (c *Client) Subscribe(channel string) (err error) {
 
 // Receive subscription messages
 func (c *Client) Receive() {
-
-	EventListener(time.Millisecond*500, func() {
-		for {
-			select {
-			case pubSub := <-c.receive:
-				go func(sub *redis.PubSub) {
-					ch := sub.Channel()
-					for message := range ch {
-						c.Send <- []byte(message.Payload)
-					}
-				}(pubSub)
-			default:
-				return
-			}
+	for {
+		select {
+		case pubSub := <-c.receive:
+			go func(sub *redis.PubSub) {
+				ch := sub.Channel()
+				for message := range ch {
+					c.Send <- []byte(message.Payload)
+				}
+			}(pubSub)
 		}
-	})
+	}
 }
 
 // Unsubscribe unsubscribe
