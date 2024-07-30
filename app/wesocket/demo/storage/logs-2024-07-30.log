@@ -1,0 +1,2 @@
+{"level":"INFO","time":"2024-07-30 11:05:08","caller":"websocket/client.go:67","message":"Websocket","Read":"2024-07-30 11:05:08 "}
+{"level":"INFO","time":"2024-07-30 11:06:10","caller":"websocket/client.go:66","message":"Websocket","Read":"2024-07-30 11:06:10 1005"}

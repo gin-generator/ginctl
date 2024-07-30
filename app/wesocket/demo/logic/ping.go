@@ -6,6 +6,6 @@ func Ping(_ *websocket.Request) (response *websocket.Response) {
 	response = &websocket.Response{}
 	response.Code = 200
 	response.Message = "success"
-	response.Data = "pong"
+	response.Content = "pong"
 	return
 }

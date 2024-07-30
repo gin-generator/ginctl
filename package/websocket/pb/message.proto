@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package websocket;
+
+option go_package = "./pb";
+
+message Message {
+  string event = 1;
+  string request = 2;
+}
+
+message Response {
+  uint32 Code = 1;
+  string Message = 2;
+  string Content = 3;
+}
+
+

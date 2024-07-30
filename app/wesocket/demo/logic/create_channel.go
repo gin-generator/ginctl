@@ -12,6 +12,6 @@ func CreateChannel(request *websocket.Request) (response *websocket.Response) {
 	}
 	response.Code = 200
 	response.Message = "success"
-	response.Data = channel
+	response.Content = channel
 	return
 }

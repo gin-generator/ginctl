@@ -6,7 +6,6 @@ import (
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gin-generator/ginctl/package/logger"
 	rds "github.com/gin-generator/ginctl/package/redis"
-	t "github.com/gin-generator/ginctl/package/time"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
@@ -25,6 +24,8 @@ type Client struct {
 	FirstTime     int64              // 首次连接事件
 	HeartbeatTime int64              // 用户上次心跳时间
 	Timeout       int64              // 断连时间
+	Protocol      int
+	close         chan struct{}
 }
 
 func NewClient(addr string, socket *websocket.Conn) *Client {
@@ -38,31 +39,41 @@ func NewClient(addr string, socket *websocket.Conn) *Client {
 		FirstTime:     First,
 		HeartbeatTime: First,
 		receive:       make(chan *redis.PubSub, 10),
+		close:         make(chan struct{}, 1),
 	}
 }
 
 func (c *Client) Close() {
+	c.close <- struct{}{}
 	Manager.Unset <- c
 }
 
 // Read client data
 func (c *Client) Read() {
 
+	var handler DistributeHandler
+	switch c.Protocol {
+	case websocket.TextMessage:
+		handler = NewJsonHandler()
+	case websocket.BinaryMessage:
+		handler = NewProtoHandler()
+	}
+
 	for {
 		_, message, err := c.Socket.ReadMessage()
 		if err != nil {
 			if closeErr, ok := err.(*websocket.CloseError); ok {
-				logger.ErrorString("Websocket", "Read",
-					fmt.Sprintf("%s close code: %v\n", t.Time{}.Local(), closeErr.Code))
+				logger.InfoString("Websocket", "Read",
+					fmt.Sprintf("close time: %s, close code: %d",
+						time.Now().Format("2006-01-02 15:04:05"), closeErr.Code))
 			}
 			return
 		}
 
-		err = Distribute(c, message)
+		err = handler.Distribute(c, message)
 		if err != nil {
 			logger.ErrorString("Read", "Distribute",
-				fmt.Sprintf("Message distribution error: %s, fd: %s", err.Error(), c.Fd))
-			return
+				fmt.Sprintf("%s, fd: %s", err.Error(), c.Fd))
 		}
 	}
 
@@ -72,9 +83,15 @@ func (c *Client) Read() {
 func (c *Client) Write() {
 
 	for bytes := range c.Send {
-		if err := c.Socket.WriteMessage(websocket.TextMessage, bytes); err != nil {
+		if err := c.Socket.WriteMessage(c.Protocol, bytes); err != nil {
+			if closeErr, ok := err.(*websocket.CloseError); ok {
+				logger.InfoString("Websocket", "Write",
+					fmt.Sprintf("close time: %s, close code: %d",
+						time.Now().Format("2006-01-02 15:04:05"), closeErr.Code))
+				return
+			}
 			logger.ErrorString("Websocket", "Write",
-				fmt.Sprintf("send message err: %s, address: %s,fd: %s", err.Error(), c.Addr, c.Fd))
+				fmt.Sprintf("%s, address: %s, fd: %s", err.Error(), c.Addr, c.Fd))
 		}
 	}
 
@@ -85,7 +102,7 @@ func (c *Client) SendMessage(message []byte) {
 
 	if c == nil {
 		logger.ErrorString("Websocket", "SendMessage",
-			fmt.Sprintf("Not found websocket client,fd: %s", c.Fd))
+			fmt.Sprintf("Not found websocket client, fd: %s", c.Fd))
 		return
 	}
 
@@ -166,6 +183,8 @@ func (c *Client) Receive() {
 					}
 				}(pubSub)
 			}
+		case <-c.close:
+			return
 		}
 	}
 }
@@ -210,9 +229,9 @@ func (c *Client) IsHeartbeatTimeout(currentTime int64) (timeout bool) {
 // Heartbeat The scheduled task clears timeout links
 func (c *Client) Heartbeat() {
 	gap := get.Int64("app.heartbeat_check_time", 1000)
-	EventListener(time.Microsecond*time.Duration(gap), func() {
+	EventListener(time.Millisecond*time.Duration(gap), func() {
 		if c.IsHeartbeatTimeout(time.Now().Unix()) {
 			c.Close()
 		}
-	})
+	}, c.close)
 }

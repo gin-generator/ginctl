@@ -1,25 +1,17 @@
 package websocket
 
 import (
-	"encoding/json"
 	"errors"
 	"sync"
 )
 
+type DistributeHandler interface {
+	Distribute(client *Client, message []byte) (err error)
+}
+
 type Request struct {
 	Client *Client
 	Send   []byte
-}
-
-type Response struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-}
-
-type Message struct {
-	Event   string `json:"event"`
-	Request any    `json:"request,omitempty"`
 }
 
 type DisposeFunc func(request *Request) (response *Response)
@@ -43,47 +35,5 @@ func GetHandler(event string) (handler DisposeFunc, err error) {
 	if !okk {
 		return nil, errors.New("handler type error")
 	}
-	return
-}
-
-// Distribute Data distribution processing
-func Distribute(client *Client, message []byte) (err error) {
-	r := &Message{}
-	err = json.Unmarshal(message, r)
-	if err != nil {
-		return
-	}
-
-	handler, err := GetHandler(r.Event)
-	if err != nil {
-		return Do(&Response{
-			Code:    500,
-			Message: err.Error(),
-		}, client)
-	}
-
-	req, err := json.Marshal(r.Request)
-	if err != nil {
-		return
-	}
-
-	response := handler(&Request{
-		Client: client,
-		Send:   req,
-	})
-
-	if response != nil {
-		return Do(response, client)
-	}
-	return
-}
-
-func Do(response *Response, client *Client) (err error) {
-	bytes, err := json.Marshal(response)
-	if err != nil {
-		return
-	}
-
-	client.SendMessage(bytes)
 	return
 }

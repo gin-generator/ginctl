@@ -48,6 +48,12 @@ func upgrade(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// protocol
+	protocol := req.URL.Query().Get("protocol")
+	if protocol == "" {
+		protocol = "json"
+	}
+
 	conn, err := (&websocket.Upgrader{
 		ReadBufferSize:  get.Int("app.read_buffer_size", 4096),
 		WriteBufferSize: get.Int("app.write_buffer_size", 4096),
@@ -63,8 +69,15 @@ func upgrade(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := ws.NewClient(conn.RemoteAddr().String(), conn)
+	switch protocol {
+	case "json":
+		client.Protocol = websocket.TextMessage
+	case "protobuf":
+		client.Protocol = websocket.BinaryMessage
+	}
 	client.Timeout = get.Int64("app.heartbeat_timeout", 600)
 	client.Send <- []byte(fmt.Sprintf("{\"code\": 200,\"message\": \"success\",\"data\": {\"fd\": \"%s\"}}", client.Fd))
+	//client.Send <- []byte("{\"event\": \"ping\"}")
 
 	// 监听读
 	go client.Read()
