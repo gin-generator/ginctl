@@ -23,8 +23,8 @@ type Client struct {
 	receive       chan *redis.PubSub // 订阅通知
 	FirstTime     int64              // 首次连接事件
 	HeartbeatTime int64              // 用户上次心跳时间
-	Timeout       int64              // 断连时间
-	Protocol      int
+	Timeout       int64              // 超时断连时间
+	Protocol      int                // 协议类型
 	close         chan struct{}
 }
 
@@ -39,6 +39,8 @@ func NewClient(addr string, socket *websocket.Conn) *Client {
 		FirstTime:     First,
 		HeartbeatTime: First,
 		receive:       make(chan *redis.PubSub, 10),
+		Timeout:       get.Int64("app.heartbeat_timeout", 600),
+		Protocol:      websocket.TextMessage,
 		close:         make(chan struct{}, 1),
 	}
 }
@@ -52,15 +54,8 @@ func (c *Client) Close() {
 func (c *Client) Read() {
 
 	var handler DistributeHandler
-	switch c.Protocol {
-	case websocket.TextMessage:
-		handler = NewJsonHandler()
-	case websocket.BinaryMessage:
-		handler = NewProtoHandler()
-	}
-
 	for {
-		_, message, err := c.Socket.ReadMessage()
+		messageType, message, err := c.Socket.ReadMessage()
 		if err != nil {
 			if closeErr, ok := err.(*websocket.CloseError); ok {
 				logger.InfoString("Websocket", "Read",
@@ -68,6 +63,14 @@ func (c *Client) Read() {
 						time.Now().Format("2006-01-02 15:04:05"), closeErr.Code))
 			}
 			return
+		}
+
+		c.Protocol = messageType
+		switch messageType {
+		case websocket.TextMessage:
+			handler = NewJsonHandler()
+		case websocket.BinaryMessage:
+			handler = NewProtoHandler()
 		}
 
 		err = handler.Distribute(c, message)

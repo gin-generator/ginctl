@@ -15,6 +15,7 @@ const (
 
 var (
 	Manager *ClientManager
+	once    sync.Once
 )
 
 // ClientManager Client pool manager
@@ -28,17 +29,20 @@ type ClientManager struct {
 	Errs      chan error
 }
 
-func NewClientManager() *ClientManager {
+func NewClientManager() {
 	limit := get.Uint("app.max_pool", Max)
-	Manager = &ClientManager{
-		Register:  make(chan *Client, limit),
-		Unset:     make(chan *Client, limit),
-		Total:     0,
-		Max:       limit,
-		Broadcast: make(chan []byte, limit),
-		Errs:      make(chan error, limit),
-	}
-	return Manager
+	once.Do(func() {
+		Manager = &ClientManager{
+			Register:  make(chan *Client, limit),
+			Unset:     make(chan *Client, limit),
+			Total:     0,
+			Max:       limit,
+			Broadcast: make(chan []byte, limit),
+			Errs:      make(chan error, limit),
+		}
+	})
+
+	go Manager.Scheduler()
 }
 
 // Scheduler Start the websocket scheduler
@@ -50,7 +54,7 @@ func (m *ClientManager) Scheduler() {
 		case client := <-m.Unset:
 			m.Close(client)
 		case message := <-m.Broadcast:
-			m.Pool.Range(func(key, value any) bool {
+			m.Pool.Range(func(_, value any) bool {
 				client, ok := value.(*Client)
 				if ok {
 					client.Send <- message
@@ -79,7 +83,7 @@ func (m *ClientManager) GetClient(fd string) (client *Client, err error) {
 
 // GetAllClient Get all client
 func (m *ClientManager) GetAllClient() (clients []*Client) {
-	m.Pool.Range(func(key, value any) bool {
+	m.Pool.Range(func(_, value any) bool {
 		client, ok := value.(*Client)
 		if ok {
 			clients = append(clients, client)
@@ -92,19 +96,16 @@ func (m *ClientManager) GetAllClient() (clients []*Client) {
 // RegisterClient Register client
 func (m *ClientManager) RegisterClient(client *Client) {
 	m.Pool.Store(client.Fd, client)
-	m.Total += 1
+	m.Total++
 }
 
 // Close Unset client
 func (m *ClientManager) Close(client *Client) {
-
 	err := client.Socket.Close()
 	if err != nil {
 		m.Errs <- err
 	}
-
 	close(client.Send)
-
 	channels, _ := client.GetAllChan()
 	for _, channel := range channels {
 		err = client.Unsubscribe(channel)
@@ -112,7 +113,6 @@ func (m *ClientManager) Close(client *Client) {
 			m.Errs <- err
 		}
 	}
-
 	client.OwnerChannel.Range(func(key, value any) bool {
 		pubSub, ok := value.(*redis.PubSub)
 		if ok {
@@ -120,9 +120,8 @@ func (m *ClientManager) Close(client *Client) {
 		}
 		return true
 	})
-
 	m.Pool.Delete(client.Fd)
-	m.Total -= 1
+	m.Total--
 	logger.InfoString("ClientManager", "UnsetClient",
 		fmt.Sprintf("websocket timeout, fd: %s be cleared", client.Fd))
 }
