@@ -16,7 +16,6 @@ import (
 
 type Client struct {
 	Fd            string             // 每个连接唯一标识
-	Addr          string             // 客户端ip地址
 	Request       *http.Request      // 请求
 	Socket        *websocket.Conn    // 用户连接
 	Send          chan []byte        // 待发送的数据
@@ -30,12 +29,11 @@ type Client struct {
 	close         chan struct{}
 }
 
-func NewClient(addr string, socket *websocket.Conn, req *http.Request) *Client {
+func NewClient(socket *websocket.Conn, req *http.Request) *Client {
 	First := time.Now().Unix()
 	limit := get.Uint("app.max_pool", Max)
 	return &Client{
 		Fd:            uuid.NewV4().String(),
-		Addr:          addr,
 		Request:       req,
 		Socket:        socket,
 		Send:          make(chan []byte, limit),
@@ -97,7 +95,7 @@ func (c *Client) Write() {
 				return
 			}
 			logger.ErrorString("Websocket", "Write",
-				fmt.Sprintf("%s, address: %s, fd: %s", err.Error(), c.Addr, c.Fd))
+				fmt.Sprintf("%s, fd: %s", err.Error(), c.Fd))
 		}
 	}
 
