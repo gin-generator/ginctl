@@ -27,7 +27,7 @@ func Upgrade(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client := NewClient(conn.RemoteAddr().String(), conn)
+	client := NewClient(conn.RemoteAddr().String(), conn, req)
 	client.Send <- []byte(fmt.Sprintf("{\"code\": 200,\"message\": \"success\",\"content\": \"%s\"}", client.Fd))
 
 	// 监听读

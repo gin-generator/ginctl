@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -16,6 +17,7 @@ import (
 type Client struct {
 	Fd            string             // 每个连接唯一标识
 	Addr          string             // 客户端ip地址
+	Request       *http.Request      // 请求
 	Socket        *websocket.Conn    // 用户连接
 	Send          chan []byte        // 待发送的数据
 	Channel       sync.Map           // 订阅频道
@@ -28,12 +30,13 @@ type Client struct {
 	close         chan struct{}
 }
 
-func NewClient(addr string, socket *websocket.Conn) *Client {
+func NewClient(addr string, socket *websocket.Conn, req *http.Request) *Client {
 	First := time.Now().Unix()
 	limit := get.Uint("app.max_pool", Max)
 	return &Client{
 		Fd:            uuid.NewV4().String(),
 		Addr:          addr,
+		Request:       req,
 		Socket:        socket,
 		Send:          make(chan []byte, limit),
 		FirstTime:     First,
