@@ -6,8 +6,21 @@ import (
 )
 
 type (
+	Request struct {
+		Client *Client
+		Send   []byte
+	}
 	DisposeFunc    func(*Request) *Response
 	MiddlewareFunc func(DisposeFunc) DisposeFunc
+
+	Router struct {
+		handlers sync.Map
+	}
+
+	Route struct {
+		final       DisposeFunc
+		middlewares []MiddlewareFunc
+	}
 )
 
 var (
@@ -16,20 +29,6 @@ var (
 
 type DistributeHandler interface {
 	Distribute(client *Client, message []byte) (err error)
-}
-
-type Router struct {
-	handlers sync.Map
-}
-
-type Route struct {
-	final       DisposeFunc
-	middlewares []MiddlewareFunc
-}
-
-type Request struct {
-	Client *Client
-	Send   []byte
 }
 
 func NewRouter() *Router {
