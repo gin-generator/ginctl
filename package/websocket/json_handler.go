@@ -38,7 +38,7 @@ func (j *JsonHandler) Distribute(client *Client, message []byte) (err error) {
 		})
 	}
 
-	handler, err := GetHandler(msg.Event)
+	route, err := RouteManager.GetRoute(msg.Event)
 	if err != nil {
 		return j.Do(client, &Response{
 			Code:    http.StatusInternalServerError,
@@ -46,7 +46,7 @@ func (j *JsonHandler) Distribute(client *Client, message []byte) (err error) {
 		})
 	}
 
-	response := handler(&Request{
+	response := route.Execute(&Request{
 		Client: client,
 		Send:   []byte(msg.Request),
 	})

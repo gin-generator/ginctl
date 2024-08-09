@@ -27,7 +27,7 @@ func (p *ProtoHandler) Distribute(client *Client, message []byte) (err error) {
 		})
 	}
 
-	handler, err := GetHandler(msg.Event)
+	route, err := RouteManager.GetRoute(msg.Event)
 	if err != nil {
 		return p.Do(client, &pb.Response{
 			Code:    http.StatusInternalServerError,
@@ -35,7 +35,7 @@ func (p *ProtoHandler) Distribute(client *Client, message []byte) (err error) {
 		})
 	}
 
-	response := handler(&Request{
+	response := route.Execute(&Request{
 		Client: client,
 		Send:   []byte(msg.Request),
 	})
