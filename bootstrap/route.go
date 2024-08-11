@@ -9,7 +9,6 @@ import (
 
 func RegisterGlobalMiddleware(r *gin.Engine) {
 	r.Use(
-		middlewares.Auth(),
 		middlewares.Logger(),
 		middlewares.Recovery(),
 		middlewares.Cors(),

@@ -38,12 +38,12 @@ const (
 )
 
 var StubMap = map[StubCode]string{
-	FromStubBasic:     "stub/api/basic_logic.stub",
-	FromStubImport:    "stub/api/logic_import.stub",
-	FromStubLogicFunc: "stub/api/logic_func.stub",
-	FromStubTypes:     "stub/api/types.stub",
-	FromStubTypeFunc:  "stub/api/type_func.stub",
-	ToLogic:           "stub/api/logic.stub",
+	FromStubBasic:     "stub/http/api/basic_logic.stub",
+	FromStubImport:    "stub/http/api/logic_import.stub",
+	FromStubLogicFunc: "stub/http/api/logic_func.stub",
+	FromStubTypes:     "stub/http/api/types.stub",
+	FromStubTypeFunc:  "stub/http/api/type_func.stub",
+	ToLogic:           "stub/http/api/logic.stub",
 }
 
 // GenLogic generate apply logic.

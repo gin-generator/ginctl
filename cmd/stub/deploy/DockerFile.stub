@@ -18,9 +18,9 @@ ENV TZ Asia/Shanghai
 RUN apk add tzdata
 
 
-COPY --from=go_builder /app/http/{{.App}} /{{.App}}
-COPY --from=go_builder /app/http/{{.App}}/etc/env.yaml /etc/env.yaml
+COPY --from=go_builder /app/{{.App}} /{{.App}}
+COPY --from=go_builder /app/config/env.yaml /config/env.yaml
 
-
-EXPOSE 8000
+# EXPOSE 8000
 ENTRYPOINT ["./{{.App}}"]
+

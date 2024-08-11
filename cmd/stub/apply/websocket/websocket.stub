@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/app/wesocket/demo/route"
+	"{{.Module}}/app/websocket/demo/route"
 	"github.com/gin-generator/ginctl/bootstrap"
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gin-generator/ginctl/package/websocket"
@@ -19,7 +19,7 @@ func main() {
 	bootstrap.SetupRedis()
 
 	// Register event
-	route.RegisterDemoRoute()
+	route.Register{{.Apply}}Route()
 
 	// Start the websocket scheduler
 	websocket.NewClientManager()
@@ -28,9 +28,9 @@ func main() {
 	http.HandleFunc("/ws", websocket.Upgrade)
 	host := get.String("app.host", "127.0.0.1")
 	port := get.Uint("app.port", 9503)
-	fmt.Println(fmt.Sprintf("websocket demo serve start: %s:%d...", host, port))
+	fmt.Println(fmt.Sprintf("websocket {{.Apply}} serve start: %s:%d...", host, port))
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil)
 	if err != nil {
-		fmt.Println("websocket demo start failure")
+		fmt.Println("websocket {{.Apply}} start failure")
 	}
 }

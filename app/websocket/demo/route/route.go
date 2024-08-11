@@ -1,8 +1,8 @@
 package route
 
 import (
-	"github.com/gin-generator/ginctl/app/wesocket/demo/logic"
-	m "github.com/gin-generator/ginctl/app/wesocket/demo/middleware"
+	"github.com/gin-generator/ginctl/app/websocket/demo/logic"
+	m "github.com/gin-generator/ginctl/app/websocket/demo/middleware"
 	"github.com/gin-generator/ginctl/package/websocket"
 )
 

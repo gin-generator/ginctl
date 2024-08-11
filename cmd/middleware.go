@@ -107,7 +107,7 @@ func GenMiddleware(c *cobra.Command, _ []string) (err error) {
 		}
 		defer newFile.Close()
 
-		tp, errs := StubData.ReadFile("stub/middleware/middleware.stub")
+		tp, errs := StubData.ReadFile("stub/http/middleware/middleware.stub")
 		if errs != nil {
 			return
 		}

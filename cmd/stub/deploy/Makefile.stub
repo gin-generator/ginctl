@@ -1,9 +1,9 @@
 export tag=prod-{{.Date}}-1
 export GOPROXY=https://goproxy.cn,direct
 build:
-	echo "building {{.App}} binary"
-	go build -o {{.App}} .
+	echo "building {{.App}} mirror"
+	docker build -f DockerFile -t {{.Image}}:${tag} .
 
-build_image:
-	echo "building {{.App}} container"
-	docker build -t {{.Image}}:${tag} .
+push_image: build
+	echo "pushing {{.App}} mirror"
+	docker push {{.Image}}:${tag}

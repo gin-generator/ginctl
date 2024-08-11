@@ -57,7 +57,7 @@ func init() {
 
 func GenRoute(cmd *cobra.Command, _ []string) (err error) {
 
-	filePath := fmt.Sprintf("%s/app/%s/%s/%s/route.go", base.Module, base.Pwd, base.App, cmd.Name())
+	filePath := fmt.Sprintf("%s/app/%s/%s/%s/route.go", base.Pwd, base.Module, base.App, cmd.Name())
 	err = MakeRoute(filePath)
 	if err != nil {
 		console.Error(err.Error())
@@ -88,7 +88,7 @@ func MakeRoute(filePath string) (err error) {
 		}
 		defer newFile.Close()
 
-		t, errs := StubData.ReadFile("stub/route/route.stub")
+		t, errs := StubData.ReadFile(fmt.Sprintf("stub/%s/route/route.stub", base.Module))
 		if errs != nil {
 			return errs
 		}
@@ -109,7 +109,7 @@ func MakeRoute(filePath string) (err error) {
 			return
 		}
 
-		tt, errs := StubData.ReadFile("stub/route/register_route.stub")
+		tt, errs := StubData.ReadFile(fmt.Sprintf("stub/%s/route/register_route.stub", base.Module))
 		if errs != nil {
 			return errs
 		}

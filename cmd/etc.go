@@ -62,7 +62,7 @@ func GenEtc(_ *cobra.Command, _ []string) (err error) {
 }
 
 func MakeEtc() (err error) {
-	dir := fmt.Sprintf("%s/app/%s/%s/%s", base.Pwd, base.Module, base.App, "etc")
+	dir := fmt.Sprintf("%s/app/%s/%s/etc", base.Pwd, base.Module, base.App)
 	err = helper.CreateDirIfNotExist(dir)
 	if err != nil {
 		return
@@ -71,6 +71,6 @@ func MakeEtc() (err error) {
 	app := AppBase{
 		App: base.App,
 	}
-	err = CreateByStub(filePath, "stub/etc/env.stub", app)
+	err = CreateByStub(filePath, fmt.Sprintf("stub/%s/etc/env.stub", base.Module), app)
 	return
 }
