@@ -1,0 +1,12 @@
+package route
+
+import (
+	"{{.Module}}/app/websocket/demo/logic"
+	"{{.Module}}/app/websocket/demo/middleware"
+	"github.com/gin-generator/ginctl/package/websocket"
+)
+
+func RegisterDemoRoute() {
+	router := websocket.NewRouter()
+	// websocket event
+}

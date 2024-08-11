@@ -23,7 +23,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/iancoleman/strcase"
@@ -44,7 +44,7 @@ Example: middleware --app demo --module http --name auth --global true.`,
 }
 
 func init() {
-	rootCmd.AddCommand(middlewareCmd)
+	httpCmd.AddCommand(middlewareCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -85,7 +85,7 @@ func GenMiddleware(c *cobra.Command, _ []string) (err error) {
 		dir = fmt.Sprintf("%s/middleware", base.Pwd)
 	} else {
 		pkg = "middleware"
-		dir = fmt.Sprintf("%s/app/%s/%s/middleware", base.Pwd, base.Module, base.App)
+		dir = fmt.Sprintf("%s/app/http/%s/middleware", base.Pwd, base.App)
 	}
 
 	err = helper.CreateDirIfNotExist(dir)
@@ -129,8 +129,8 @@ func GenMiddleware(c *cobra.Command, _ []string) (err error) {
 			imports = fmt.Sprintf("\"%s/middleware\"", base.Mod)
 			t = "\t"
 		} else {
-			routePath = fmt.Sprintf("%s/app/%s/%s/route/route.go", base.Pwd, base.Module, base.App)
-			imports = fmt.Sprintf("\"%s/app/%s/%s/middleware\"", base.Mod, base.Module, base.App)
+			routePath = fmt.Sprintf("%s/app/http/%s/route/route.go", base.Pwd, base.App)
+			imports = fmt.Sprintf("\"%s/app/http/%s/middleware\"", base.Mod, base.App)
 		}
 		err = helper.InsertImport(routePath, imports, "import ", "")
 		if err != nil {

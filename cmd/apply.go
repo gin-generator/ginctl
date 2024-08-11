@@ -23,7 +23,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/iancoleman/strcase"
@@ -40,7 +40,7 @@ var applyCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(applyCmd)
+	RootCmd.AddCommand(applyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -51,13 +51,23 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// applyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	applyCmd.Flags().StringP("module", "m", "", "Module name(http,grpc,websocket)")
 }
 
-func GenApply(_ *cobra.Command, _ []string) (err error) {
+func GenApply(cmd *cobra.Command, _ []string) (err error) {
 
-	switch base.Module {
+	module, err := cmd.Flags().GetString("module")
+	if err != nil {
+		console.Error("invalid module name")
+		return
+	}
+
+	switch module {
 	case base.Http:
 		err = MakeHttpApp()
+	case base.Websocket:
+		err = MakeWebsocketApp()
 	default:
 		console.Error("not support")
 		return
@@ -66,10 +76,11 @@ func GenApply(_ *cobra.Command, _ []string) (err error) {
 	return
 }
 
+// MakeHttpApp make an application of http
 func MakeHttpApp() (err error) {
 
 	// check
-	appDir := fmt.Sprintf("%s/app/%s/%s", base.Pwd, base.Module, base.App)
+	appDir := fmt.Sprintf("%s/app/http/%s", base.Pwd, base.App)
 	if helper.PathExists(appDir) {
 		console.Info("Application of `" + base.App + "` has been created.")
 		return
@@ -105,7 +116,7 @@ func MakeHttpApp() (err error) {
 	// route
 	go func(wg *sync.WaitGroup, errs chan error) {
 		defer wg.Done()
-		filePath := fmt.Sprintf("%s/app/%s/%s/route/route.go", base.Pwd, base.Module, base.App)
+		filePath := fmt.Sprintf("%s/app/http/%s/route/route.go", base.Pwd, base.App)
 		err = MakeRoute(filePath)
 		if err != nil {
 			errs <- err
@@ -146,14 +157,20 @@ func MakeHttpApp() (err error) {
 	return
 }
 
+// MakeHttpMain make http main.go
 func MakeHttpMain() (err error) {
-	filePath := fmt.Sprintf("%s/app/%s/%s/%s.go", base.Pwd, base.Module, base.App, base.App)
-	stub := fmt.Sprintf("stub/apply/%s/%s.stub", base.Module, base.Module)
+	filePath := fmt.Sprintf("%s/app/http/%s/%s.go", base.Pwd, base.App, base.App)
+	stub := "stub/http/http.stub"
 	app := Apply{
 		Module: base.Mod,
 		Apply:  strcase.ToCamel(base.App),
 	}
 	err = CreateByStub(filePath, stub, app)
 
+	return
+}
+
+// MakeWebsocketApp make an application of websocket
+func MakeWebsocketApp() (err error) {
 	return
 }

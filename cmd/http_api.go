@@ -23,7 +23,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/spf13/cobra"
 	"strings"
@@ -89,7 +89,7 @@ Example: api -a demo -m http -l user -o ping -d test, to create a single operati
 }
 
 func init() {
-	rootCmd.AddCommand(apiCmd)
+	httpCmd.AddCommand(apiCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -138,7 +138,7 @@ func GenApi(_ *cobra.Command, _ []string) (err error) {
 	for _, info := range files {
 		go func(wg *sync.WaitGroup, code StubCode, file string) {
 			defer wg.Done()
-			filePath := fmt.Sprintf("app/%s/%s/logic/%s/%s.go", base.Module, body.Apply, body.LowerModel, file)
+			filePath := fmt.Sprintf("app/http/%s/logic/%s/%s.go", body.Apply, body.LowerModel, file)
 			err = GenLogic(filePath, code, ToLogic, body)
 			if err != nil {
 				errChan <- err
@@ -174,7 +174,7 @@ func GenApi(_ *cobra.Command, _ []string) (err error) {
 		// CURD
 		for _, opt := range OptMap {
 			for _, info := range files {
-				filePath := fmt.Sprintf("app/%s/%s/logic/%s/%s.go", base.Module, body.Apply, body.LowerModel, info.Name)
+				filePath := fmt.Sprintf("app/http/%s/logic/%s/%s.go", body.Apply, body.LowerModel, info.Name)
 				DoGenOperation(filePath, opt.Name, opt.Desc, info.Code, errs)
 			}
 		}
@@ -185,7 +185,7 @@ func GenApi(_ *cobra.Command, _ []string) (err error) {
 			return
 		}
 		for _, info := range files {
-			filePath := fmt.Sprintf("app/%s/%s/logic/%s/%s.go", base.Module, body.Apply, body.LowerModel, info.Name)
+			filePath := fmt.Sprintf("app/http/%s/logic/%s/%s.go", body.Apply, body.LowerModel, info.Name)
 			if desc == "" {
 				desc = operation
 			}
@@ -207,7 +207,7 @@ func GenApi(_ *cobra.Command, _ []string) (err error) {
 }
 
 func MakeBasic() (err error) {
-	path := fmt.Sprintf("app/%s/%s/logic/logic.go", base.Module, base.App)
+	path := fmt.Sprintf("app/http/%s/logic/logic.go", base.App)
 	body := &Body{
 		Apply: base.App,
 		Mod:   base.Mod,

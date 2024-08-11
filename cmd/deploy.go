@@ -23,7 +23,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/spf13/cobra"
@@ -40,7 +40,7 @@ var deployCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(deployCmd)
+	RootCmd.AddCommand(deployCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -72,7 +72,7 @@ var deployer = []string{
 
 func MakeDeployer() (err error) {
 
-	dir := fmt.Sprintf("%s/app/%s/%s/deploy", base.Pwd, base.Module, base.App)
+	dir := fmt.Sprintf("%s/app/http/%s/deploy", base.Pwd, base.App)
 	err = helper.CreateDirIfNotExist(dir)
 	if err != nil {
 		return

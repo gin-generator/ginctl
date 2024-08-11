@@ -1,10 +1,9 @@
 package bootstrap
 
 import (
-	admin "github.com/gin-generator/ginctl/app/http/admin/route"
 	"github.com/gin-generator/ginctl/middleware"
-	http "github.com/gin-generator/ginctl/package/respond"
 	"github.com/gin-gonic/gin"
+	demo "github.com/gin-generator/ginctl/app/http/demo/route"
 )
 
 func RegisterGlobalMiddleware(r *gin.Engine) {
@@ -16,11 +15,11 @@ func RegisterGlobalMiddleware(r *gin.Engine) {
 	)
 }
 
-func RegisterAdminApiRoute(router *gin.Engine) {
+func RegisterDemoApiRoute(router *gin.Engine) {
 	// route not found.
 	http.Alert404Route(router)
 	// global middleware.
 	RegisterGlobalMiddleware(router)
 	// Initialize route.
-	admin.RegisterAdminAPI(router)
+	demo.RegisterDemoAPI(router)
 }

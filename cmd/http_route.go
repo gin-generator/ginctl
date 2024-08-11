@@ -23,7 +23,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/iancoleman/strcase"
@@ -42,7 +42,7 @@ var routeCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(routeCmd)
+	httpCmd.AddCommand(routeCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -57,7 +57,7 @@ func init() {
 
 func GenRoute(cmd *cobra.Command, _ []string) (err error) {
 
-	filePath := fmt.Sprintf("%s/app/%s/%s/%s/route.go", base.Pwd, base.Module, base.App, cmd.Name())
+	filePath := fmt.Sprintf("%s/app/http/%s/%s/route.go", base.Pwd, base.App, cmd.Name())
 	err = MakeRoute(filePath)
 	if err != nil {
 		console.Error(err.Error())
@@ -88,7 +88,7 @@ func MakeRoute(filePath string) (err error) {
 		}
 		defer newFile.Close()
 
-		t, errs := StubData.ReadFile(fmt.Sprintf("stub/%s/route/route.stub", base.Module))
+		t, errs := StubData.ReadFile("stub/http/route/route.stub")
 		if errs != nil {
 			return errs
 		}
@@ -109,7 +109,7 @@ func MakeRoute(filePath string) (err error) {
 			return
 		}
 
-		tt, errs := StubData.ReadFile(fmt.Sprintf("stub/%s/route/register_route.stub", base.Module))
+		tt, errs := StubData.ReadFile("stub/http/route/register_route.stub")
 		if errs != nil {
 			return errs
 		}

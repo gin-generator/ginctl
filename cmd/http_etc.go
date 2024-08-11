@@ -23,30 +23,54 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-
+	"github.com/gin-generator/ginctl/cmd/base"
+	"github.com/gin-generator/ginctl/package/console"
+	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "view ginctl version",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(viper.GetString("version"))
-	},
+// etcCmd represents the etc command
+var etcCmd = &cobra.Command{
+	Use:   "etc",
+	Short: "make app config",
+	RunE:  GenEtc,
 }
 
 func init() {
-	RootCmd.AddCommand(versionCmd)
+	httpCmd.AddCommand(etcCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// etcCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// etcCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func GenEtc(_ *cobra.Command, _ []string) (err error) {
+
+	err = MakeEtc()
+	if err != nil {
+		console.Error(err.Error())
+		return
+	}
+	console.Success("Create etc done.")
+	return
+}
+
+func MakeEtc() (err error) {
+	dir := fmt.Sprintf("%s/app/http/%s/etc", base.Pwd, base.App)
+	err = helper.CreateDirIfNotExist(dir)
+	if err != nil {
+		return
+	}
+	filePath := fmt.Sprintf("%s/env.yaml", dir)
+	app := AppBase{
+		App: base.App,
+	}
+	err = CreateByStub(filePath, "stub/http/etc/env.stub", app)
+	return
 }

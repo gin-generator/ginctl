@@ -21,32 +21,26 @@ THE SOFTWARE.
 */
 package cmd
 
-import (
-	"fmt"
-	"github.com/spf13/viper"
+import "github.com/spf13/cobra"
 
-	"github.com/spf13/cobra"
-)
-
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "view ginctl version",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(viper.GetString("version"))
-	},
+// apiCmd represents the api command
+var httpCmd = &cobra.Command{
+	Use:   "http",
+	Short: "make http",
+	Long:  `Generate http action.`,
+	RunE:  GenApi,
 }
 
 func init() {
-	RootCmd.AddCommand(versionCmd)
+	RootCmd.AddCommand(httpCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// apiCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// apiCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

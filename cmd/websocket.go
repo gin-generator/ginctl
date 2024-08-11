@@ -21,56 +21,26 @@ THE SOFTWARE.
 */
 package cmd
 
-import (
-	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
-	"github.com/gin-generator/ginctl/package/console"
-	"github.com/gin-generator/ginctl/package/helper"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-// etcCmd represents the etc command
-var etcCmd = &cobra.Command{
-	Use:   "etc",
-	Short: "make app config",
-	RunE:  GenEtc,
+// apiCmd represents the api command
+var wsCmd = &cobra.Command{
+	Use:   "ws",
+	Short: "make websocket",
+	Long:  `Generate websocket action.`,
+	RunE:  GenApi,
 }
 
 func init() {
-	rootCmd.AddCommand(etcCmd)
+	RootCmd.AddCommand(wsCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// etcCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// apiCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// etcCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func GenEtc(_ *cobra.Command, _ []string) (err error) {
-
-	err = MakeEtc()
-	if err != nil {
-		console.Error(err.Error())
-		return
-	}
-	console.Success("Create etc done.")
-	return
-}
-
-func MakeEtc() (err error) {
-	dir := fmt.Sprintf("%s/app/%s/%s/etc", base.Pwd, base.Module, base.App)
-	err = helper.CreateDirIfNotExist(dir)
-	if err != nil {
-		return
-	}
-	filePath := fmt.Sprintf("%s/env.yaml", dir)
-	app := AppBase{
-		App: base.App,
-	}
-	err = CreateByStub(filePath, fmt.Sprintf("stub/%s/etc/env.stub", base.Module), app)
-	return
+	// apiCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

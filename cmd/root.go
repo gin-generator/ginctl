@@ -25,7 +25,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/gin-generator/ginctl/build/base"
+	"github.com/gin-generator/ginctl/cmd/base"
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/spf13/cobra"
@@ -40,8 +40,8 @@ var (
 	StubData embed.FS
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
 	Use:   "ginctl",
 	Short: "Code generation cli based on gin.",
 	Long: `ginctl is a rapid generation of golang application scaffolding based on gin,supporting one click generation of HTTP, GRPC, Websocket applications,and can also be used to construct microservice applications. 
@@ -73,9 +73,9 @@ Use it to quickly generate your application!`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
-	rootCmd.Execute()
+	RootCmd.Execute()
 }
 
 func init() {
@@ -95,11 +95,11 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", defaultConfigFile, "config file (default is $HOME/etc/env.yaml)")
-	rootCmd.PersistentFlags().StringP("app", "a", "", "app name")
-	rootCmd.PersistentFlags().StringP("module", "m", "", "module name (support http,grpc,websocket)")
+	//RootCmd.PersistentFlags().StringVar(&cfgFile, "config", defaultConfigFile, "config file (default is $HOME/etc/env.yaml)")
+	RootCmd.PersistentFlags().StringP("app", "a", "", "app name")
+	//RootCmd.PersistentFlags().StringP("module", "m", "", "module name (support http,grpc,websocket)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -23,6 +23,10 @@ func NewJsonHandler() *JsonHandler {
 	return &JsonHandler{}
 }
 
+func NewResponse() *Response {
+	return &Response{}
+}
+
 func (j *JsonHandler) Distribute(client *Client, message []byte) (err error) {
 	var msg Message
 	err = json.Unmarshal(message, &msg)
