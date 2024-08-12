@@ -65,9 +65,9 @@ func GenApply(cmd *cobra.Command, _ []string) (err error) {
 
 	switch module {
 	case base.Http:
-		err = MakeHttpApp()
+		err = Http()
 	case base.Websocket:
-		err = MakeWebsocketApp()
+		err = Websocket()
 	default:
 		console.Error("not support")
 		return
@@ -76,8 +76,8 @@ func GenApply(cmd *cobra.Command, _ []string) (err error) {
 	return
 }
 
-// MakeHttpApp make an application of http
-func MakeHttpApp() (err error) {
+// Http make an application of http
+func Http() (err error) {
 
 	// check
 	appDir := fmt.Sprintf("%s/app/http/%s", base.Pwd, base.App)
@@ -166,11 +166,59 @@ func MakeHttpMain() (err error) {
 		Apply:  strcase.ToCamel(base.App),
 	}
 	err = CreateByStub(filePath, stub, app)
-
 	return
 }
 
-// MakeWebsocketApp make an application of websocket
-func MakeWebsocketApp() (err error) {
+// Websocket make an application of websocket
+func Websocket() (err error) {
+	var wg sync.WaitGroup
+	errs := make(chan error, 4)
+	wg.Add(4)
+	// create main.go
+	go func(wg *sync.WaitGroup, errs chan error) {
+		defer wg.Done()
+		err = MakeWsMain()
+		if err != nil {
+			errs <- err
+		}
+	}(&wg, errs)
+
+	// route
+	go func(wg *sync.WaitGroup, errs chan error) {
+		defer wg.Done()
+		err = MakeWsRoute()
+		if err != nil {
+			errs <- err
+		}
+	}(&wg, errs)
+
+	// etc
+	go func(wg *sync.WaitGroup, errs chan error) {
+		defer wg.Done()
+		err = MakeWsEtc()
+		if err != nil {
+			errs <- err
+		}
+	}(&wg, errs)
+
+	// logic
+	go func(wg *sync.WaitGroup, errs chan error) {
+		defer wg.Done()
+		err = MakeWsApi("ping")
+		if err != nil {
+			errs <- err
+		}
+	}(&wg, errs)
+
+	wg.Wait()
+	close(errs)
+
+	for err = range errs {
+		if err != nil {
+			console.Error(err.Error())
+			return
+		}
+	}
+	console.Success("Done.")
 	return
 }

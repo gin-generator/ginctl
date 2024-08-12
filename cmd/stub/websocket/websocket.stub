@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"{{.Module}}/app/websocket/demo/route"
-	"github.com/gin-generator/ginctl/bootstrap"
+	"{{.Module}}/app/websocket/{{.App}}/route"
+	"{{.Module}}/bootstrap"
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gin-generator/ginctl/package/websocket"
 	"net/http"
@@ -28,9 +28,9 @@ func main() {
 	http.HandleFunc("/ws", websocket.Upgrade)
 	host := get.String("app.host", "127.0.0.1")
 	port := get.Uint("app.port", 9503)
-	fmt.Println(fmt.Sprintf("websocket {{.Apply}} serve start: %s:%d...", host, port))
+	fmt.Println(fmt.Sprintf("websocket {{.App}} serve start: %s:%d...", host, port))
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil)
 	if err != nil {
-		fmt.Println("websocket {{.Apply}} start failure")
+		fmt.Println("websocket {{.App}} start failure")
 	}
 }

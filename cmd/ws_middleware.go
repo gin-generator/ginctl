@@ -28,97 +28,59 @@ import (
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"text/template"
+	"strings"
 )
 
-// routeCmd represents the route command
-var routeCmd = &cobra.Command{
-	Use:   "route",
-	Short: "make http route",
-	Long:  `Example: http route -a web`,
-	RunE:  GenRoute,
+// wsMiddlewareCmd represents the wsMiddleware command
+var wsMiddlewareCmd = &cobra.Command{
+	Use:   "middleware",
+	Short: "make websocket middleware",
+	Long:  `Example: ginctl ws middleware -a example -n example`,
+	RunE:  GenWsMiddleware,
 }
 
 func init() {
-	httpCmd.AddCommand(routeCmd)
+	wsCmd.AddCommand(wsMiddlewareCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// routeCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// wsMiddlewareCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// routeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// wsMiddlewareCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	wsMiddlewareCmd.Flags().StringP("name", "n", "", "middleware name")
 }
 
-func GenRoute(cmd *cobra.Command, _ []string) (err error) {
-
-	filePath := fmt.Sprintf("%s/app/http/%s/%s/route.go", base.Pwd, base.App, cmd.Name())
-	err = MakeRoute(filePath)
+func GenWsMiddleware(cmd *cobra.Command, _ []string) (err error) {
+	name := cmd.Flag("name").Value.String()
+	if name == "" {
+		console.Error("name is required")
+		return
+	}
+	err = MakeWsMiddleware(name)
 	if err != nil {
 		console.Error(err.Error())
-	} else {
-		console.Success(fmt.Sprintf("Create route of %s done.", base.App))
+		return
 	}
+	console.Success(fmt.Sprintf("Add %s middleware to route.go.", strcase.ToCamel(name)))
 	return
 }
 
-type Template struct {
-	Route string
-}
-
-func MakeRoute(filePath string) (err error) {
-
-	dir := filepath.Dir(filePath)
+func MakeWsMiddleware(name string) (err error) {
+	dir := fmt.Sprintf("%s/app/websocket/%s/middleware", base.Pwd, base.App)
 	err = helper.CreateDirIfNotExist(dir)
 	if err != nil {
 		return
 	}
-
-	if !helper.PathExists(filePath) {
-		var r Template
-		r.Route = strcase.ToCamel(base.App)
-		newFile, errs := os.Create(filePath)
-		if errs != nil {
-			return errs
-		}
-		defer newFile.Close()
-
-		t, errs := StubData.ReadFile("stub/http/route/route.stub")
-		if errs != nil {
-			return errs
-		}
-		temp, errs := template.New(filePath).Parse(string(t))
-		if errs != nil {
-			return errs
-		}
-
-		err = temp.Execute(newFile, r)
-		if err != nil {
-			return
-		}
-
-		imports := fmt.Sprintf("%s \"%s/app/http/%s/route\"", base.App, base.Mod, base.App)
-		router := fmt.Sprintf("%s/bootstrap/route.go", base.Pwd)
-		err = helper.InsertImport(router, imports, "import ", "")
-		if err != nil {
-			return
-		}
-
-		tt, errs := StubData.ReadFile("stub/http/route/register_route.stub")
-		if errs != nil {
-			return errs
-		}
-		content := string(tt)
-		content = fmt.Sprintf(content, r.Route, base.App, r.Route)
-		err = helper.AppendToFile(router, content)
-		if err != nil {
-			return
-		}
+	filePath := fmt.Sprintf("%s/%s.go", dir, strings.ToLower(name))
+	stub := "stub/websocket/middleware/middleware.stub"
+	app := Middleware{
+		Name: strcase.ToCamel(name),
 	}
+	err = CreateByStub(filePath, stub, app)
 	return
 }

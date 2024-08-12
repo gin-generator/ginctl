@@ -1,0 +1,1 @@
+router.Register("{{.Name}}", logic.{{.Handler}})

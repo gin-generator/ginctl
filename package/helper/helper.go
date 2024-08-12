@@ -105,49 +105,6 @@ func PathExists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-// ReadLines Reads file contents into string slices.
-func ReadLines(filePath string) ([]string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines, scanner.Err()
-}
-
-// WriteLines Write the modified content back to the file.
-func WriteLines(filePath string, lines []string) error {
-	content := strings.Join(lines, "\n")
-	return os.WriteFile(filePath, []byte(content), os.ModePerm)
-}
-
-// CheckLineIsExisted Check str is existed.
-func CheckLineIsExisted(lines []string, new string) bool {
-	for _, line := range lines {
-		if strings.Contains(line, new) {
-			return true
-		}
-	}
-	return false
-}
-
-// InsertOffset Insert the invoke call at the specified location.
-func InsertOffset(lines []string, new, offset string) []string {
-	for i, line := range lines {
-		if strings.Contains(line, offset) {
-			lines[i] = new + "\n" + line
-			break
-		}
-	}
-	return lines
-}
-
 // AppendToFile appends the given content to the end of the specified file
 func AppendToFile(filePath string, content string) error {
 	// Open the file for read and write operations.
@@ -238,6 +195,8 @@ func InsertImport(filePath, newImport, format, t string) error {
 	}
 	if !Contains(imports, newImport) {
 		imports = append(imports, newImport)
+	} else {
+		return nil
 	}
 	sort.Strings(imports)
 
@@ -262,6 +221,26 @@ func InsertImport(filePath, newImport, format, t string) error {
 	}
 
 	return nil
+}
+
+// InsertStringInFile inserts a string into a file after a specified content.
+func InsertStringInFile(filePath, contentToFind, stringToInsert string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	content := string(data)
+	if strings.Contains(content, stringToInsert) {
+		return nil // stringToInsert already exists
+	}
+	index := strings.Index(content, contentToFind)
+	if index == -1 {
+		return nil // contentToFind not found
+	}
+
+	newContent := content[:index+len(contentToFind)] + stringToInsert + content[index+len(contentToFind):]
+	return os.WriteFile(filePath, []byte(newContent), os.ModePerm)
 }
 
 func GetModule(pwd, format string) (result string) {

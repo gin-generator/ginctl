@@ -36,10 +36,10 @@ import (
 // middlewareCmd represents the middleware command
 var middlewareCmd = &cobra.Command{
 	Use:   "middleware",
-	Short: "make middleware",
+	Short: "make http middleware",
 	Long: `Generate middleware.
-Example: middleware --app demo --module http --name auth.
-Example: middleware --app demo --module http --name auth --global true.`,
+Example: http middleware --app demo --name auth.
+Example: http middleware --app demo --name auth --global true.`,
 	RunE: GenMiddleware,
 }
 

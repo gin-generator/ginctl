@@ -27,51 +27,52 @@ import (
 	"github.com/gin-generator/ginctl/package/console"
 	"github.com/gin-generator/ginctl/package/helper"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
-// etcCmd represents the etc command
-var etcCmd = &cobra.Command{
+// wsEtcCmd represents the wsEtc command
+var wsEtcCmd = &cobra.Command{
 	Use:   "etc",
-	Short: "make http config",
-	Long:  `Example: http etc --app demo.`,
-	RunE:  GenEtc,
+	Short: "make websocket etc",
+	Long:  `Example: ginctl ws etc -a example`,
+	RunE:  GenWsEtc,
 }
 
 func init() {
-	httpCmd.AddCommand(etcCmd)
+	wsCmd.AddCommand(wsEtcCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// etcCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// wsEtcCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// etcCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// wsEtcCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func GenEtc(_ *cobra.Command, _ []string) (err error) {
-
-	err = MakeEtc()
+func GenWsEtc(_ *cobra.Command, _ []string) (err error) {
+	err = MakeWsEtc()
 	if err != nil {
 		console.Error(err.Error())
 		return
 	}
-	console.Success("Create etc done.")
+	console.Success("Done.")
 	return
 }
 
-func MakeEtc() (err error) {
-	dir := fmt.Sprintf("%s/app/http/%s/etc", base.Pwd, base.App)
+func MakeWsEtc() (err error) {
+	dir := fmt.Sprintf("%s/app/websocket/%s/etc", base.Pwd, base.App)
 	err = helper.CreateDirIfNotExist(dir)
 	if err != nil {
 		return
 	}
 	filePath := fmt.Sprintf("%s/env.yaml", dir)
-	app := AppBase{
-		App: base.App,
+	stub := "stub/websocket/etc/env.stub"
+	app := Apply{
+		App: strings.ToLower(base.App),
 	}
-	err = CreateByStub(filePath, "stub/http/etc/env.stub", app)
+	err = CreateByStub(filePath, stub, app)
 	return
 }

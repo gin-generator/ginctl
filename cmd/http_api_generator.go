@@ -19,6 +19,8 @@ type Body struct {
 	LowerModel string
 	Apply      string
 	Mod        string
+	Name       string
+	Handler    string
 }
 
 type Operation struct {
@@ -35,15 +37,24 @@ const (
 	FromStubTypes
 	FromStubTypeFunc
 	ToLogic
+
+	FromWsLogic
+	FromWsLogicRegister
+	FromWsLogicImport
 )
 
 var StubMap = map[StubCode]string{
+	// http
 	FromStubBasic:     "stub/http/api/basic_logic.stub",
 	FromStubImport:    "stub/http/api/logic_import.stub",
 	FromStubLogicFunc: "stub/http/api/logic_func.stub",
 	FromStubTypes:     "stub/http/api/types.stub",
 	FromStubTypeFunc:  "stub/http/api/type_func.stub",
 	ToLogic:           "stub/http/api/logic.stub",
+	// websocket
+	FromWsLogic:         "stub/websocket/logic/logic.stub",
+	FromWsLogicImport:   "stub/websocket/logic/logic_import.stub",
+	FromWsLogicRegister: "stub/websocket/logic/logic_register.stub",
 }
 
 // GenLogic generate apply logic.

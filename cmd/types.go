@@ -10,7 +10,12 @@ type AppBase struct {
 	App string
 }
 
+type Middleware struct {
+	Name string
+}
+
 type Apply struct {
+	App    string
 	Module string
 	Apply  string
 }
@@ -22,8 +27,13 @@ type Deployer struct {
 	Image   string
 }
 
+type Handler struct {
+	Name    string
+	Handler string
+}
+
 type Stub interface {
-	AppBase | Apply | Deployer
+	AppBase | Apply | Deployer | Handler | Middleware
 }
 
 func CreateByStub[T Stub](filePath, stub string, stubStruct T) (err error) {

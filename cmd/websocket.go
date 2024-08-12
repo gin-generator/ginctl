@@ -23,7 +23,7 @@ package cmd
 
 import "github.com/spf13/cobra"
 
-// apiCmd represents the api command
+// wsCmd represents the api command
 var wsCmd = &cobra.Command{
 	Use:   "ws",
 	Short: "make websocket",
@@ -38,9 +38,9 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// apiCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// wsCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// apiCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// wsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

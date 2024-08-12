@@ -1,0 +1,13 @@
+package middleware
+
+import (
+	"github.com/gin-generator/ginctl/package/websocket"
+)
+
+func {{.Name}}(next websocket.DisposeFunc) websocket.DisposeFunc {
+	return func(req *websocket.Request) *websocket.Response {
+		// TODO: Add your middleware here.
+
+		return next(req)
+	}
+}
