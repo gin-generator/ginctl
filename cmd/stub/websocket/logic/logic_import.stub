@@ -1,1 +1,1 @@
-"{{.Module}}/app/websocket/admin/logic"
+"{{.Module}}/app/websocket/{{.App}}/logic"

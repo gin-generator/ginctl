@@ -99,6 +99,7 @@ func MakeWsApi(name string) (err error) {
 		return
 	}
 	importsContent := strings.Replace(string(imports), "{{.Module}}", base.Mod, -1)
+	importsContent = strings.Replace(importsContent, "{{.App}}", base.App, -1)
 	err = helper.InsertImport(route, importsContent, "import ", "")
 	if err != nil {
 		return

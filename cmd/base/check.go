@@ -3,6 +3,7 @@ package base
 import (
 	"errors"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 const (
@@ -29,5 +30,6 @@ func Check(cmd *cobra.Command) (err error) {
 	if App == "" {
 		return errors.New("invalid app name")
 	}
+	App = strings.ToLower(App)
 	return
 }
