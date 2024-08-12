@@ -33,7 +33,7 @@ import (
 var etcCmd = &cobra.Command{
 	Use:   "etc",
 	Short: "make http config",
-	Long:  `Example: http etc --app demo.`,
+	Long:  `Example: ginctl http etc --app demo.`,
 	RunE:  GenEtc,
 }
 

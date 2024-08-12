@@ -38,9 +38,8 @@ import (
 var modelCmd = &cobra.Command{
 	Use:   "model",
 	Short: "make model",
-	Long: `Generates a mapping structure for a table based on the database table name.
-Enter --table * or -t * to generate all table mapping structures. 
-Multiple tables are separated by ",".`,
+	Long: `Example: ginctl model --module http --table example.
+Example: ginctl model --module http --table *.`,
 	RunE: GenModelStruct,
 }
 

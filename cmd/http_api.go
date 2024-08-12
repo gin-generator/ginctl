@@ -83,8 +83,8 @@ var (
 var apiCmd = &cobra.Command{
 	Use:   "api",
 	Short: "make http api",
-	Long: `Example: http api -a demo -l user -c true, CURD operation to create a resource. 
-Example: http api -a demo -l user -o ping -d test, to create a single operation method.`,
+	Long: `Example: ginctl http api -a demo -l user -c true, CURD operation to create a resource. 
+Example: ginctl http api -a demo -l user -o ping -d test, to create a single operation method.`,
 	RunE: GenApi,
 }
 

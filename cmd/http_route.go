@@ -37,7 +37,7 @@ import (
 var routeCmd = &cobra.Command{
 	Use:   "route",
 	Short: "make http route",
-	Long:  `Example: http route -a web`,
+	Long:  `Example: ginctl http route -a web`,
 	RunE:  GenRoute,
 }
 
