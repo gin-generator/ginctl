@@ -48,7 +48,9 @@ func NewClient(socket *websocket.Conn, req *http.Request) *Client {
 
 func (c *Client) Close() {
 	c.close <- struct{}{}
-	Manager.Unset <- c
+	go func() {
+		Manager.Unset <- c
+	}()
 }
 
 // Read client data
@@ -176,11 +178,14 @@ func (c *Client) Subscribe(channel string) (err error) {
 
 // Receive subscription messages
 func (c *Client) Receive() {
+	var wg sync.WaitGroup
 	for {
 		select {
 		case pubSub := <-c.receive:
 			if pubSub != nil {
+				wg.Add(1)
 				go func(sub *redis.PubSub) {
+					defer wg.Done()
 					ch := sub.Channel()
 					for message := range ch {
 						c.Send <- []byte(message.Payload)
@@ -188,6 +193,7 @@ func (c *Client) Receive() {
 				}(pubSub)
 			}
 		case <-c.close:
+			wg.Wait()
 			return
 		}
 	}

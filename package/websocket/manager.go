@@ -7,6 +7,7 @@ import (
 	"github.com/gin-generator/ginctl/package/logger"
 	"github.com/go-redis/redis/v8"
 	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -23,7 +24,7 @@ type ClientManager struct {
 	Pool      sync.Map
 	Register  chan *Client
 	Unset     chan *Client
-	Total     uint
+	Total     uint64
 	Max       uint
 	Broadcast chan []byte
 	Errs      chan error
@@ -57,7 +58,9 @@ func (m *ClientManager) Scheduler() {
 			m.Pool.Range(func(_, value any) bool {
 				client, ok := value.(*Client)
 				if ok {
-					client.Send <- message
+					go func(c *Client, msg []byte) {
+						c.Send <- msg
+					}(client, message)
 				}
 				return true
 			})
@@ -96,7 +99,7 @@ func (m *ClientManager) GetAllClient() (clients []*Client) {
 // RegisterClient Register client
 func (m *ClientManager) RegisterClient(client *Client) {
 	m.Pool.Store(client.Fd, client)
-	m.Total++
+	atomic.AddUint64(&m.Total, 1)
 }
 
 // Close Unset client
@@ -125,7 +128,7 @@ func (m *ClientManager) Close(client *Client) {
 		return true
 	})
 	m.Pool.Delete(client.Fd)
-	m.Total--
+	atomic.AddUint64(&m.Total, ^uint64(0))
 	logger.InfoString("ClientManager", "UnsetClient",
 		fmt.Sprintf("websocket timeout, fd: %s be cleared", client.Fd))
 }
