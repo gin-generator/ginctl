@@ -25,7 +25,7 @@ type ClientManager struct {
 	Register  chan *Client
 	Unset     chan *Client
 	Total     uint64
-	Max       uint
+	Max       uint64
 	Broadcast chan []byte
 	Errs      chan error
 }
