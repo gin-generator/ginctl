@@ -105,7 +105,11 @@ func (m *ClientManager) Close(client *Client) {
 	if err != nil {
 		m.Errs <- err
 	}
-	close(client.Send)
+	select {
+	case <-client.Send:
+	default:
+		close(client.Send)
+	}
 	channels, _ := client.GetAllChan()
 	for _, channel := range channels {
 		err = client.Unsubscribe(channel)
