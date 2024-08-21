@@ -129,3 +129,13 @@ func (m *ClientManager) Close(client *Client) {
 	logger.InfoString("ClientManager", "UnsetClient",
 		fmt.Sprintf("websocket timeout, fd: %s be cleared", client.Fd))
 }
+
+// UnsetClient Unset client
+func (m *ClientManager) UnsetClient(fd string) (err error) {
+	client, err := m.GetClient(fd)
+	if err != nil {
+		return
+	}
+	m.Unset <- client
+	return
+}
