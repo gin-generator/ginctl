@@ -61,6 +61,11 @@ func Uint(path string, defaultValue ...interface{}) uint {
 	return cast.ToUint(internalGet(path, defaultValue...))
 }
 
+// Uint64 获取 Uint64 类型的配置信息
+func Uint64(path string, defaultValue ...interface{}) uint64 {
+	return cast.ToUint64(internalGet(path, defaultValue...))
+}
+
 // Bool 获取 Bool 类型的配置信息
 func Bool(path string, defaultValue ...interface{}) bool {
 	return cast.ToBool(internalGet(path, defaultValue...))
