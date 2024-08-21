@@ -31,7 +31,7 @@ type ClientManager struct {
 }
 
 func NewClientManager() {
-	limit := get.Uint("app.max_pool", Max)
+	limit := get.Uint64("app.max_pool", Max)
 	once.Do(func() {
 		Manager = &ClientManager{
 			Register:  make(chan *Client, limit),
