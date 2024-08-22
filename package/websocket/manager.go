@@ -27,7 +27,6 @@ type ClientManager struct {
 	Total     uint64
 	Max       uint64
 	Broadcast chan []byte
-	Mu        *sync.Mutex
 	Errs      chan error
 }
 
@@ -40,7 +39,6 @@ func NewClientManager() {
 			Total:     0,
 			Max:       limit,
 			Broadcast: make(chan []byte, limit),
-			Mu:        &sync.Mutex{},
 			Errs:      make(chan error, limit),
 		}
 	})
@@ -106,15 +104,14 @@ func (m *ClientManager) RegisterClient(client *Client) {
 
 // Close Unset client
 func (m *ClientManager) Close(client *Client) {
-	m.Mu.Lock()
-	defer m.Mu.Unlock()
-	if client == nil {
-		return
-	}
-	err := client.Socket.Close()
-	if err != nil {
-		m.Errs <- err
-	}
+
+	once.Do(func() {
+		err := client.Socket.Close()
+		if err != nil {
+			m.Errs <- err
+		}
+	})
+
 	select {
 	case <-client.Send:
 	default:
@@ -122,7 +119,7 @@ func (m *ClientManager) Close(client *Client) {
 	}
 	channels, _ := client.GetAllChan()
 	for _, channel := range channels {
-		err = client.Unsubscribe(channel)
+		err := client.Unsubscribe(channel)
 		if err != nil {
 			m.Errs <- err
 		}
