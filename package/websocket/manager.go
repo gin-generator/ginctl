@@ -107,7 +107,9 @@ func (m *ClientManager) RegisterClient(client *Client) {
 func (m *ClientManager) Close(client *Client) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
-
+	if client == nil {
+		return
+	}
 	err := client.Socket.Close()
 	if err != nil {
 		m.Errs <- err
