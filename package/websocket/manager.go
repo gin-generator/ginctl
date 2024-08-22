@@ -40,6 +40,7 @@ func NewClientManager() {
 			Total:     0,
 			Max:       limit,
 			Broadcast: make(chan []byte, limit),
+			Mu:        &sync.Mutex{},
 			Errs:      make(chan error, limit),
 		}
 	})
