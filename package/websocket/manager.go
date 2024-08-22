@@ -105,21 +105,25 @@ func (m *ClientManager) RegisterClient(client *Client) {
 // Close Unset client
 func (m *ClientManager) Close(client *Client) {
 
-	once.Do(func() {
-		err := client.Socket.Close()
-		if err != nil {
-			m.Errs <- err
-		}
-	})
+	_, ok := m.Pool.Load(client.Fd)
+	if !ok {
+		return
+	}
+
+	err := client.Socket.Close()
+	if err != nil {
+		m.Errs <- err
+	}
 
 	select {
 	case <-client.Send:
 	default:
 		close(client.Send)
 	}
+
 	channels, _ := client.GetAllChan()
 	for _, channel := range channels {
-		err := client.Unsubscribe(channel)
+		err = client.Unsubscribe(channel)
 		if err != nil {
 			m.Errs <- err
 		}
