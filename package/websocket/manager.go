@@ -27,6 +27,7 @@ type ClientManager struct {
 	Total     uint64
 	Max       uint64
 	Broadcast chan []byte
+	Mu        *sync.Mutex
 	Errs      chan error
 }
 
@@ -104,6 +105,11 @@ func (m *ClientManager) RegisterClient(client *Client) {
 
 // Close Unset client
 func (m *ClientManager) Close(client *Client) {
+	m.Mu.Lock()
+	defer m.Mu.Unlock()
+	if client == nil {
+		return
+	}
 	err := client.Socket.Close()
 	if err != nil {
 		m.Errs <- err
