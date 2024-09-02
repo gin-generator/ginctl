@@ -243,6 +243,15 @@ func (rds *RdsClient) ZRangeByScore(key string, opt *redis.ZRangeBy) []string {
 	return result
 }
 
+// ZRem 移除有序集合中的一个或多个成员
+func (rds *RdsClient) ZRem(key string, members ...interface{}) bool {
+	if err := rds.Client.ZRem(rds.Context, key, members...).Err(); err != nil {
+		logger.ErrorString("Redis", "ZRem", err.Error())
+		return false
+	}
+	return true
+}
+
 // SAdd 存储无序集合
 func (rds *RdsClient) SAdd(key string, values ...interface{}) bool {
 	if err := rds.Client.SAdd(rds.Context, key, values...).Err(); err != nil {
