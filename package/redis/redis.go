@@ -221,6 +221,28 @@ func (rds *RdsClient) ZRange(key string) []string {
 	return result
 }
 
+// ZIsMember 检查一个有序几个是否存在，并返回结果
+func (rds *RdsClient) ZIsMember(key string, member string) bool {
+	_, err := rds.Client.ZRank(rds.Context, key, member).Result()
+	if err != nil {
+		if err != redis.Nil {
+			logger.ErrorString("Redis", "ZIsMember", err.Error())
+		}
+		return false
+	}
+	return true
+}
+
+// ZRangeByScore 获取一个有序集合里的元素
+func (rds *RdsClient) ZRangeByScore(key string, opt *redis.ZRangeBy) []string {
+	result, err := rds.Client.ZRangeByScore(rds.Context, key, opt).Result()
+	if err != nil {
+		logger.ErrorString("Redis", "ZRangeByScore", err.Error())
+		return []string{}
+	}
+	return result
+}
+
 // SAdd 存储无序集合
 func (rds *RdsClient) SAdd(key string, values ...interface{}) bool {
 	if err := rds.Client.SAdd(rds.Context, key, values...).Err(); err != nil {
