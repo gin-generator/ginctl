@@ -28,6 +28,7 @@ type ClientManager struct {
 	Max       uint64
 	Broadcast chan []byte
 	Errs      chan error
+	mu        sync.Mutex
 }
 
 func NewClientManager() {
@@ -98,13 +99,17 @@ func (m *ClientManager) GetAllClient() (clients []*Client) {
 
 // RegisterClient Register client
 func (m *ClientManager) RegisterClient(client *Client) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Pool.Store(client.Fd, client)
 	atomic.AddUint64(&m.Total, 1)
 }
 
 // Close Unset client
 func (m *ClientManager) Close(client *Client) {
-
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	
 	_, ok := m.Pool.Load(client.Fd)
 	if !ok {
 		return
