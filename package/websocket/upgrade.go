@@ -5,11 +5,12 @@ import (
 	"github.com/gin-generator/ginctl/package/get"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"sync/atomic"
 )
 
 func Upgrade(w http.ResponseWriter, req *http.Request) {
 
-	if Manager.Total+1 > Manager.Max {
+	if atomic.LoadUint64(&Manager.Total) >= Manager.Max {
 		http.Error(w, "websocket service connections exceeded the upper limit", http.StatusInternalServerError)
 		return
 	}
